@@ -77,6 +77,12 @@ export default function VulnerableShare({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Securely display the poll title */}
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold">Poll Title:</h3>
+          <p className="text-gray-700">{pollTitle}</p>
+        </div>
+
         {/* URL Display */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700">

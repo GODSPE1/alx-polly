@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { login } from '@/app/lib/actions/auth-actions';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -21,10 +21,13 @@ export default function LoginPage() {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    const result = await login({ email, password });
-
-    if (result?.error) {
-      setError(result.error);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) {
+      setError(error.message);
       setLoading(false);
     } else {
       window.location.href = '/polls'; // Full reload to pick up session

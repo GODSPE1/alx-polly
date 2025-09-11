@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "./lib/context/auth-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,11 +24,95 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthProvider>{children}</AuthProvider>
-      </body>
+      <body>{children}</body>
     </html>
+  );
+}
+
+import { ReactNode } from "react";
+import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { getCurrentUser, logout } from "@/app/lib/actions/auth-actions";
+import { redirect } from "next/navigation";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex-shrink-0">
+              <Link href="/polls" className="text-2xl font-bold text-blue-600">
+                ALX Polly
+              </Link>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link href="/create">
+                <Button>Create Poll</Button>
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="cursor-pointer">
+                    <AvatarImage
+                      src={user.user_metadata?.avatar_url}
+                      alt={user.user_metadata?.name}
+                    />
+                    <AvatarFallback>
+                      {user.user_metadata?.name
+                        ? user.user_metadata.name.charAt(0).toUpperCase()
+                        : user.email?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    {user.user_metadata?.name || "My Account"}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/polls">My Polls</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings">Settings</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <form action={logout} className="w-full">
+                      <button type="submit" className="w-full text-left">
+                        Logout
+                      </button>
+                    </form>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main className="flex-grow bg-slate-50">
+        <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }

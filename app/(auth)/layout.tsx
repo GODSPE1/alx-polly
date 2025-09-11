@@ -2,25 +2,24 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/lib/context/auth-context';
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) {
-      router.push('/polls');
-    }
-  }, [user, loading, router]);
+    // Replace with server-side authentication logic
+    const fetchUser = async () => {
+      const response = await fetch('/api/auth/me');
+      if (response.ok) {
+        const user = await response.json();
+        if (user) {
+          router.push('/polls');
+        }
+      }
+    };
 
-  if (loading) {
-    return <div>Loading...</div>; // Or a loading spinner
-  }
-
-  if (user) {
-    return null; // Should already be redirected by useEffect
-  }
+    fetchUser();
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
