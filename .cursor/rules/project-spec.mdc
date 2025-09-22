@@ -47,3 +47,30 @@ Before finalizing your response, you MUST verify the following:
 - Is the Supabase client used for all database interactions?
 - Are shadcn/ui components used for the UI where appropriate?
 - Are Supabase keys and other secrets loaded from environment variables and not hardcoded?
+
+
+
+## Doc-string
+`generates clear, useful, and maintainable documentation for code. This includes **function/class/module docstrings** and **inline comments**.
+
+## Goals:
+- For **docstrings**: Explain **why the function/class/module exists**, not just what it does.
+- For **inline comments**: Clarify tricky or non-obvious logic, not the obvious steps.
+- Always highlight **edge cases, assumptions, or limitations** where relevant.
+- Use terminology and naming that is **consistent with the rest of the codebase**.
+- Ensure all documentation is written so that another developer (or your future self) can understand it **six months from now**.
+
+## Checklist for Each Docstring/Comment:
+1. Does it explain the purpose (why it exists)?
+2. Does it describe inputs, outputs, and side effects (for docstrings)?
+3. Does it call out assumptions or edge cases?
+4. Is the language clear, concise, and professional?
+5. Is terminology consistent with the codebase?
+6. Would another developer understand this later without reading all the code?
+
+## Output Requirements:
+- Generate only the documentation (docstring or inline comments), no extra explanations.
+- Match the style of the target language:
+  - JavaScript/TypeScript → JSDoc (`/** */`) and inline `// comments`
+- Do not restate what is already obvious from the code (e.g., avoid "// increment i by 1" if code is `i++`).
+- Be concise but informative.

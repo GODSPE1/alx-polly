@@ -4,6 +4,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+/**
+ * Displays details for a single poll, allows users to vote and react with emojis.
+ * Handles voting, result calculation, and emoji reactions using mock data.
+ * 
+ * @file Poll detail page component.
+ */
+import { EmojiPicker } from '@/app/components/ui/emoji-picker';
+import { submitEmojiResponse } from '@/app/lib/actions/response-actions';
+import { toast } from 'sonner';
 
 // Mock data for a single poll
 const mockPoll = {
@@ -26,6 +35,7 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // In a real app, you would fetch the poll data based on the ID
   const poll = mockPoll;
@@ -46,6 +56,18 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
   const getPercentage = (votes: number) => {
     if (totalVotes === 0) return 0;
     return Math.round((votes / totalVotes) * 100);
+  };
+
+  const handleEmojiSelect = async (emoji: string) => {
+    setIsSubmitting(true);
+    const result = await submitEmojiResponse(params.id, emoji);
+    if (result.success) {
+      toast.success('Your response has been recorded!');
+    } else {
+      toast.error(result.error);
+    }
+    setIsSubmitting(false);
+    setShowEmojiPicker(false);
   };
 
   return (
@@ -112,23 +134,22 @@ export default function PollDetailPage({ params }: { params: { id: string } }) {
             </div>
           )}
         </CardContent>
-        <CardFooter className="text-sm text-slate-500 flex justify-between">
-          <span>Created by {poll.createdBy}</span>
-          <span>Created on {new Date(poll.createdAt).toLocaleDateString()}</span>
+        <CardFooter className="flex items-center justify-between mt-4">
+          <div className="text-sm text-slate-500">
+            Created by {poll.createdBy} on {poll.createdAt}
+          </div>
+          <div className="relative">
+            <Button variant="outline" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+              React
+            </Button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-12 right-0 z-10">
+                <EmojiPicker onEmojiClick={handleEmojiSelect} />
+              </div>
+            )}
+          </div>
         </CardFooter>
       </Card>
-
-      <div className="pt-4">
-        <h2 className="text-xl font-semibold mb-4">Share this poll</h2>
-        <div className="flex space-x-2">
-          <Button variant="outline" className="flex-1">
-            Copy Link
-          </Button>
-          <Button variant="outline" className="flex-1">
-            Share on Twitter
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }

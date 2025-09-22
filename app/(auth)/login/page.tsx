@@ -1,16 +1,53 @@
+/**
+ * @fileoverview User Login Page
+ * 
+ * Secure login interface that authenticates users via server actions and provides
+ * proper error handling with user enumeration protection. Implements modern Next.js
+ * patterns for form handling and navigation.
+ * 
+ * Security Features:
+ * - Server-side authentication processing
+ * - Generic error messages to prevent user enumeration
+ * - Proper form validation and loading states
+ */
+
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { createClient } from '@/lib/supabase/client';
+import { login } from '@/app/lib/actions/auth-actions';
 
+/**
+ * Login Page Component
+ * 
+ * Renders a secure login form that processes authentication through server actions.
+ * Includes proper error handling, loading states, and navigation to registration.
+ * 
+ * @returns Login form with card-based layout and error handling
+ * 
+ * @security_features
+ * - Uses server actions to keep authentication logic secure
+ * - Generic error messages prevent user enumeration attacks
+ * - Form validation prevents empty submissions
+ * 
+ * @ux_considerations
+ * - Loading states provide feedback during authentication
+ * - Clear navigation to registration page
+ * - Accessible form labels and autocomplete hints
+ * 
+ * @limitations
+ * - Requires JavaScript for form submission (client component)
+ * - Error state persists until user submits again
+ */
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -18,19 +55,18 @@ export default function LoginPage() {
     setError(null);
 
     const formData = new FormData(event.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    
+    // Call server action for secure authentication
+    const result = await login(formData);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) {
-      setError(error.message);
+    if (result?.error) {
+      // Display generic error to prevent user enumeration
+      setError(result.error);
       setLoading(false);
     } else {
-      window.location.href = '/polls'; // Full reload to pick up session
+      // Successful login - server action handles redirect
+      // Refresh to pick up new session state
+      router.refresh();
     }
   };
 
@@ -64,6 +100,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
               />
             </div>
+            {/* Error display with consistent styling */}
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Logging in...' : 'Login'}
