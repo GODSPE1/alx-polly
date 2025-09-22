@@ -1,3 +1,38 @@
+/**
+ * @file Authentication Actions for Supabase-backed SSR Next.js App
+ *
+ * Provides server-side actions for user authentication flows, including login, registration,
+ * logout, and session management. All functions leverage Supabase Auth for secure credential
+ * handling and session control, with SSR compatibility and HttpOnly cookie management.
+ *
+ * ## Functions:
+ * - `login(formData: FormData)`: Authenticates a user using email and password. Redirects on success,
+ *   returns error message on failure. Assumes valid form data and relies on Supabase for password validation.
+ *   Edge case: Returns generic error for invalid credentials.
+ *
+ * - `register(formData: FormData)`: Registers a new user with email verification. Validates password confirmation
+ *   server-side. Returns error for mismatched passwords or Supabase registration errors (e.g., duplicate email).
+ *   Assumes Supabase enforces password strength and email format.
+ *
+ * - `logout()`: Signs out the current user, clears session, and redirects to login. Invalidates tokens and triggers
+ *   layout revalidation. Assumes Supabase session is active.
+ *
+ * - `getCurrentUser()`: Retrieves the authenticated user object from Supabase session. Returns `null` if not authenticated.
+ *   Useful for SSR auth checks. Assumes Supabase session is correctly configured.
+ *
+ * - `getSession()`: Fetches the current session object, including tokens and expiration. Returns `null` if no active session.
+ *   Useful for advanced session management and expiration checks.
+ *
+ * ## Security & Assumptions:
+ * - All actions are processed server-side to prevent credential exposure.
+ * - Supabase handles password hashing, verification, and email validation.
+ * - HttpOnly cookies are used for session management.
+ * - Email verification is required for new accounts.
+ * - Functions expect well-formed FormData and rely on Supabase error handling for edge cases.
+ *
+ * ## Usage:
+ * Designed for integration with Next.js server actions and forms. See individual function examples for usage patterns.
+ */
 'use server'
 
 /**
@@ -50,18 +85,14 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
-  })
+  });
 
-  // Handle authentication failure
   if (error) {
-    return { error: error.message }
+    return { error: 'Invalid email or password.' };
   }
 
-  // Revalidate the layout cache to reflect authenticated state
-  revalidatePath('/', 'layout')
-  
-  // Redirect to polls dashboard on successful authentication
-  redirect('/polls')
+  revalidatePath('/', 'layout');
+  redirect('/polls');
 }
 
 /**
