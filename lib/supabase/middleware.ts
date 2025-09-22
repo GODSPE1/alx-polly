@@ -25,13 +25,20 @@ export async function updateSession(request: NextRequest) {
             return request.cookies.getAll()
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+            cookiesToSet.forEach(({ name, value, options }) => {
+              // Basic cookie name/value validation to prevent injection
+              const safeName = String(name).replace(/[^a-zA-Z0-9_\-]/g, '')
+              const safeValue = String(value).replace(/[\r\n]/g, '')
+              request.cookies.set(safeName, safeValue)
+            })
             supabaseResponse = NextResponse.next({
               request,
             })
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            )
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const safeName = String(name).replace(/[^a-zA-Z0-9_\-]/g, '')
+              const safeValue = String(value).replace(/[\r\n]/g, '')
+              supabaseResponse.cookies.set(safeName, safeValue, options)
+            })
           },
         },
       }
@@ -47,9 +54,13 @@ export async function updateSession(request: NextRequest) {
     // Network or other failure; do not block the request
     return supabaseResponse
   }
-
-  if (
-    !user &&
+    // Sanitize the pathname to prevent injection attacks
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    // Remove any query parameters or fragments that could be used for XSS
+    url.search = ''
+    url.hash = ''
+    return NextResponse.redirect(url)
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth')
   ) {
